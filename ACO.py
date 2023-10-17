@@ -21,6 +21,9 @@ class Ant:
         self.trail_type = 'no food'
         self.has_food = False
         self.body = pygame.Rect(self.position[1] - 3, self.position[0] - 3, 3, 3)
+        self.red = randint(0,255)
+        self.green = randint(0,255)
+        self.blue = randint(0,255)
 
 def make_ant(list_o_ants, num_o_ants):
     for i in range(num_o_ants):
@@ -29,8 +32,8 @@ def make_ant(list_o_ants, num_o_ants):
 def update_position():
     
     for ant in ants:
-        
-        if len(ant.trail) >= 15:
+        trail_amount = 50
+        if len(ant.trail) >= trail_amount:
             ant.trail.pop(-1)
             ant.trail.insert(0, pygame.Rect(ant.position[1] - 3, ant.position[0] - 3, 3, 3))
         else:
@@ -55,15 +58,21 @@ def update_position():
         
         
         #Trails Dont Work
-        trail_amount = 15
+        other1 = ant.red/trail_amount
+        o2 = ant.green/trail_amount
+        o3 = ant.blue/trail_amount
+        
         for position in ant.trail:
             trail_amount -= 1
-            pygame.draw.rect(screen, (17 * trail_amount, 17 * trail_amount, 17 * trail_amount), position)
+            num = other1 * trail_amount
+            num2 = o2 * trail_amount
+            num3 = o3 * trail_amount
+            pygame.draw.rect(screen, (num, num2, num3), position)
         
         pygame.draw.rect(screen, (255, 255, 255), ant.body)
         
     
-make_ant(ants, 3)
+make_ant(ants, 300)
 
 while True:
     
