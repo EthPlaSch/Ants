@@ -11,9 +11,6 @@ pygame.display.set_caption('ACO')
 clock = pygame.time.Clock()
 
 ants = []
-global food
-food = []
-trail_length = 10
 
 class Ant:
     
@@ -33,11 +30,11 @@ def update_position():
     
     for ant in ants:
         
-        if len(ant.trail) >= trail_length:
+        if len(ant.trail) >= 15:
             ant.trail.pop(-1)
-            ant.trail.insert(0, [pygame.Rect(ant.position[1] - 3, ant.position[0] - 3, 3, 3), ant.angle])
+            ant.trail.insert(0, pygame.Rect(ant.position[1] - 3, ant.position[0] - 3, 3, 3))
         else:
-            ant.trail.insert(0, [pygame.Rect(ant.position[1] - 3, ant.position[0] - 3, 3, 3), ant.angle])
+            ant.trail.insert(0, pygame.Rect(ant.position[1] - 3, ant.position[0] - 3, 3, 3))
         
         ant.position[0] += 3 * (math.sin(ant.angle))
         ant.position[1] += 3 * (math.cos(ant.angle))
@@ -57,58 +54,27 @@ def update_position():
         ant.body = pygame.Rect(ant.position[1] - 3, ant.position[0] - 3, 3, 3)
         
         
-        # #Trails Dont Work
-        alpha = 255
-        alpha_reduce = 255/trail_length
+        #Trails Dont Work
+        trail_amount = 15
         for position in ant.trail:
-            alpha -= alpha_reduce
-            s = pygame.Surface((position[0][2], position[0][3]))
-            s.set_alpha(alpha)
-            s.fill((255, 0, 255))
-            screen.blit(s, (position[0][0], position[0][1]))
+            trail_amount -= 1
+            pygame.draw.rect(screen, (17 * trail_amount, 17 * trail_amount, 17 * trail_amount), position)
         
-        pygame.draw.rect(screen, (255, 255,255), ant.body)
+        pygame.draw.rect(screen, (255, 255, 255), ant.body)
         
     
-make_ant(ants, 500)
-
-# Drawing the Food
-def draw_food(mouse_pos):
-    
-    if mouse_pos[0] > 0 and mouse_pos[0] < 640 and mouse_pos[1] > 0 and mouse_pos[1] < 360:
-        print('added food')
-        if len(food) >= 100:
-            food.pop(-1)
-            food.insert(0, pygame.Rect(mouse_pos[0] - 3, mouse_pos[1] - 3, 3, 3))
-        else:
-            food.insert(0, pygame.Rect(mouse_pos[0] - 3, mouse_pos[1] - 3, 3, 3))
-    
-
-clicked = False
+make_ant(ants, 3)
 
 while True:
     
     screen.fill((0, 0, 0))
     
-    mouse_pos = pygame.mouse.get_pos()
-    
     for event in pygame.event.get():
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # add a food function that puts food in the screen where the mouse is and being clicked
-            clicked = True
-        if event.type == pygame.MOUSEBUTTONUP:
-            clicked = False
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
            
-    if clicked == True:
-        print('Mouse Down')
-        draw_food(mouse_pos)
-        
-    for item in food:
-        pygame.draw.rect(screen, (255, 0, 0), item)
-        
+            
     update_position()
 
     pygame.display.flip()
