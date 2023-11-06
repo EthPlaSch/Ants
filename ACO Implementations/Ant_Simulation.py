@@ -18,13 +18,14 @@ NUMBER_OF_ANTS = 50
 OFFSET = 15
 SENSOR_RECT_SIZE = 15
 
-# Setting up simulation variables
-ants = []
-food = []
-# Use these to optimise
+# Usinf these to optimise by chucking the map (NOT IMPLEMENTED YET)
 ants_with_food = []
 ants_without_food = []
 sectors = []
+
+# Setting up simulation variables
+ants = []
+food = []
 clicked = False
 colony = pygame.Rect(WIDTH / 2 - COLONY_SIZE / 2, HEIGHT / 2 - COLONY_SIZE / 2, COLONY_SIZE, COLONY_SIZE)
 num_x_cells = round(WIDTH / CELL_SIZE)
@@ -61,7 +62,7 @@ class Ant:
         self.forward[0]= math.cos(self.angle)
         self.forward[1]= math.sin(self.angle)
         
-        # Setting up the sensors
+        # Setting up the sensors in front of the ant
         self.middle = pygame.Rect((self.position[0] - (SENSOR_RECT_SIZE / 2)) + self.forward[0] * OFFSET *1.5, (self.position[1] - (SENSOR_RECT_SIZE / 2)) + self.forward[1] * OFFSET * 1.5, SENSOR_RECT_SIZE, SENSOR_RECT_SIZE)
         self.left = pygame.Rect((self.position[0] - (SENSOR_RECT_SIZE / 2)) + math.cos(self.angle - math.pi/4) * OFFSET, (self.position[1] - (SENSOR_RECT_SIZE / 2)) + math.sin(self.angle - math.pi/4) * OFFSET, SENSOR_RECT_SIZE, (self.position[1] - (SENSOR_RECT_SIZE / 2)))
         self.right = pygame.Rect((self.position[0] - (SENSOR_RECT_SIZE / 2)) + math.cos(self.angle + math.pi/4) * OFFSET, (self.position[1] - (SENSOR_RECT_SIZE / 2)) + math.sin(self.angle + math.pi/4) * OFFSET, SENSOR_RECT_SIZE, (self.position[1] - (SENSOR_RECT_SIZE / 2)))
@@ -77,6 +78,7 @@ make_ant(ants, NUMBER_OF_ANTS)
 # Function that handles ant collisions and updates the ant's angle accordingly
 def check_collisions(ant, colony):
     
+    # Box collisions
     middle = 0
     left = 0
     right = 0
@@ -99,8 +101,10 @@ def check_collisions(ant, colony):
             if ant.middle.colliderect(item):
                 pass
             elif ant.left.colliderect(item):
+                # Change the ants angle to steer left
                 ant.angle = math.radians((math.degrees(ant.angle) - 5) % 359)
             elif ant.right.colliderect(item):
+                # Change the ants angle to steer right
                 ant.angle = math.radians((math.degrees(ant.angle) + 5) % 359) 
                 
                 
@@ -108,13 +112,17 @@ def check_collisions(ant, colony):
     if ant.has_food == True:
         # Steer towards colony if close  
         if ant.left.colliderect(colony):
+            # Change the ants angle to steer left
             ant.angle = math.radians((math.degrees(ant.angle) - 15) % 359)
         elif ant.right.colliderect(colony):
+            # Change the ants angle to steer right
             ant.angle = math.radians((math.degrees(ant.angle) + 15) % 359)  
         else:    
-            for other_ant in ants:
+            # Looping over every ant and every trail in every ant to check collisions with trails
+            for other_ant in ants:          
                 for tail in other_ant.trail:
                     if tail[3] == False:
+                        # Regisitering those collisions
                         if ant.middle.colliderect(tail[0]):
                             middle = tail[5]
                         if ant.left.colliderect(tail[0]):
@@ -124,9 +132,11 @@ def check_collisions(ant, colony):
     
     # If the ant doesn't have food, steer towards the red trails            
     else:
+        # Looping over every ant and every trail in every ant to check collisions with trails
         for other_ant in ants:
                 for tail in other_ant.trail:
                     if tail[3] == True:
+                        # Regisitering those collisions
                         if ant.middle.colliderect(tail[0]):
                             middle = tail[5]
                         if ant.left.colliderect(tail[0]):
@@ -139,14 +149,22 @@ def check_collisions(ant, colony):
     if middle > left and middle > right:
         pass
     elif right > left:
+        # Change the ants angle to steer right
         ant.angle = math.radians((math.degrees(ant.angle) + 10) % 359)
     elif left > right:
+        # Change the ants angle to steer left
         ant.angle = math.radians((math.degrees(ant.angle) - 10) % 359)
      
     # If ant collides with the colony and has food, drop off the food       
     if ant.body.colliderect(colony) and ant.has_food == True:
+        
+        # Set food to false
         ant.has_food = False
+        
+        # Change trail colour back to blue
         ant.trail_colour = (3, 65, 181)
+        
+        # Turn 180 degrees
         ant.angle = math.radians((math.degrees(ant.angle) - 180) % 359)
  
 # The function for handling the ant's position and trail position   
@@ -154,9 +172,12 @@ def update_position(ant):
     
     # Adding to the trail of the ant and removing any completetly faded trails
     if len(ant.trail) >= TRAIL_LENGTH:
+        # Removing the end of the trail
         ant.trail.pop(-1)
+        # Adding the current position as the next spot in thr trail
         ant.trail.insert(0, [pygame.Rect(ant.position[0] - 3, ant.position[1] - 3, 3, 3), ant.angle, ant.trail_colour, ant.has_food, 0,255])
     else:
+        # Adding the current position as the next spot in thr trail
         ant.trail.insert(0, [pygame.Rect(ant.position[0] - 3, ant.position[1] - 3, 3, 3), ant.angle, ant.trail_colour, ant.has_food, 0,255])
     
     # Moving the ant forward in the direction its facing
@@ -165,15 +186,26 @@ def update_position(ant):
     
     # Keeping the ant in the screen, forcing it to pick a new direction if it hits the edge
     if ant.position[1] <= 1:
+        
+        # Setting the ants position to the edge and making it pick a new direction to travel in
         ant.position[1] = 1
         ant.angle = math.radians(randint(0, 359))
+        
     if ant.position[1] >= (HEIGHT - 1):
+        
+        # Setting the ants position to the edge and making it pick a new direction to travel in
         ant.position[1] = (HEIGHT - 1)
         ant.angle = math.radians(randint(0, 359))
+        
     if ant.position[0] <= 1:
+        
+        # Setting the ants position to the edge and making it pick a new direction to travel in
         ant.position[0] = 1
         ant.angle = math.radians(randint(0, 359))
+        
     if ant.position[0] >= (WIDTH - 1):
+        
+        # Setting the ants position to the edge and making it pick a new direction to travel in
         ant.position[0] = (WIDTH - 1)
         ant.angle = math.radians(randint(0, 359))
         
@@ -181,6 +213,7 @@ def update_position(ant):
     ant.forward[0] = math.cos(ant.angle)
     ant.forward[1] = math.sin(ant.angle)
     
+    # Calculating the position of the ant's sensors
     left=[math.cos(ant.angle - (math.pi / 2.5)), math.sin(ant.angle - (math.pi/2.5))]
     right=[math.cos(ant.angle + (math.pi / 2.5)), math.sin(ant.angle + (math.pi/2.5))]
     
@@ -193,37 +226,44 @@ def update_position(ant):
     # Giving the trails opacity
     alpha = 255
     alpha_reduce = 255/TRAIL_LENGTH
+    
+    # Reducing the opacity of the trail over time
     for position in ant.trail:
-        
-        # Add adding trails to specific boxes here
-        
         alpha -= alpha_reduce
+        
+        # Removing the end of the trail
         position.pop(-1)
         position.append(alpha)
+        
+        # Drawing the trail to a surface
         s = pygame.Surface((position[0][2], position[0][3]))
         s.set_alpha(alpha)
         s.fill(position[2])
         screen.blit(s, (position[0][0], position[0][1]))
     
-    # Drawing the ant body and three sensors
+    # Drawing the ant body
     pygame.draw.rect(screen, (240, 240, 240), ant.body)
-    # pygame.draw.rect(screen, (200, 200, 200), ant.middle)
-    # pygame.draw.rect(screen, (200, 200, 200), ant.left)
-    # pygame.draw.rect(screen, (200, 200, 200), ant.right)
-        
+
 # Drawing the Food
 def draw_food(mouse_pos):
     
     # Based on where the mouse is, and if the button is clicked, draw food
     if mouse_pos[0] > 0 and mouse_pos[0] < 640 and mouse_pos[1] > 0 and mouse_pos[1] < 360:
-        if len(food) >= 2000:
+        # Capping the amount of food at 1000
+        if len(food) >= 1000:
+            
+            # Removing the last piece of food
             food.pop(-1)
+            # Adding a new piece of food to the list where the mouse is
             food.insert(0, pygame.Rect(mouse_pos[0] - 3, mouse_pos[1] - 3, 3, 3))
         else:
+            # Adding a new piece of food to the list where the mouse is
             food.insert(0, pygame.Rect(mouse_pos[0] - 3, mouse_pos[1] - 3, 3, 3))
  
-# Main simulation loop  
+# Main simulation function
 def main(clicked): 
+    
+    # Main simulation loop  
     while True:
         
         # Filling the screen with black
@@ -237,10 +277,14 @@ def main(clicked):
         
         # Checking for inputs, namely quit and the mouse button
         for event in pygame.event.get():
+            
+            # Checking for mouse button down
             if event.type == pygame.MOUSEBUTTONDOWN:
                 clicked = True
+            # Checking for mouse button up
             if event.type == pygame.MOUSEBUTTONUP:
                 clicked = False
+            # Checking if the window is closed
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
