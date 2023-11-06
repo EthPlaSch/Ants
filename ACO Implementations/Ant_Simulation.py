@@ -1,3 +1,6 @@
+# This just a side project to demonstrate the complexity of the algorithm.
+# This project is incomplete but still a neat representation of the algorithm
+
 # Importing libraries
 import pygame
 from random import randint
